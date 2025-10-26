@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-// const API_URL = 'https://script.google.com/macros/s/AKfycbyYjxX97y2XaSNXzaloevChPqHaBwrZsrSOWNsJZLsn9-UEuTwvNDUFiOBG3gNjnQF7jA/exec';
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = 'https://script.google.com/macros/s/AKfycbyYjxX97y2XaSNXzaloevChPqHaBwrZsrSOWNsJZLsn9-UEuTwvNDUFiOBG3gNjnQF7jA/exec';
+//const API_URL = import.meta.env.VITE_API_URL;
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
 const LOCATION_TABS = [
