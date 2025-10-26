@@ -2,7 +2,7 @@
 // If standalone, paste the ID from the sheet URL between the quotes.
 const SPREADSHEET_ID = "1di2g-g1hnlcoHERitPxw-Z2MpFEUTAU8Y_FxP11M_Zk";
 const SHEET_NAME = "Inventory";
-const HEADERS = ["id","name","location","purchasedate","quantity"];
+const HEADERS = ["id","name","location","purchaseDate","quantity"];
 
 function getSheet_() {
   const ss = SPREADSHEET_ID
@@ -19,7 +19,7 @@ function doGet(e) {
   const last = sh.getLastRow();
   const vals = last > 1 ? sh.getRange(2,1,last-1,HEADERS.length).getValues() : [];
   const items = vals.map(r => ({
-    id:r[0], name:r[1], location:r[2], purchasedate:r[3], quantity:Number(r[4]||0)
+    id:r[0], name:r[1], location:r[2], purchaseDate:r[3], quantity:Number(r[4]||0)
   }));
   return ContentService.createTextOutput(JSON.stringify(items))
     .setMimeType(ContentService.MimeType.JSON);
@@ -32,7 +32,7 @@ function doPost(e) {
 
   if (action === "add" && body.row) {
     const r = body.row;
-    sh.appendRow([r.id||"", r.name||"", r.location||"", r.purchasedate||"", Number(r.quantity||0)]);
+    sh.appendRow([r.id||"", r.name||"", r.location||"", r.purchaseDate||"", Number(r.quantity||0)]);
     return json_({ok:true});
   }
 

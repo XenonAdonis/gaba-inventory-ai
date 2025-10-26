@@ -42,7 +42,7 @@ const App = () => {
         const rows = await apiList();
         const normalized = rows.map(r => ({
           id: r.id, name: r.name, location: r.location,
-          quantity: Number(r.quantity ?? 0), purchaseDate: r.purchasedate || ''
+          quantity: Number(r.quantity ?? 0), purchaseDate: r.purchaseDate || ''
         }));
         setInventory(normalized);
         localStorage.setItem('gabaInventory', JSON.stringify(normalized));
@@ -71,7 +71,7 @@ const App = () => {
       location: newItem.location, purchasedate: newItem.purchaseDate || '',
       quantity: Number(newItem.quantity || 1),
     };
-    setInventory(prev => [...prev, { id: toAdd.id, name: toAdd.name, location: toAdd.location, purchaseDate: toAdd.purchasedate, quantity: toAdd.quantity }]);
+    setInventory(prev => [...prev, { id: toAdd.id, name: toAdd.name, location: toAdd.location, purchaseDate: toAdd.purchaseDate, quantity: toAdd.quantity }]);
     try { await apiAdd(toAdd); setErr(''); } catch { setErr('Could not save online. Item saved locally.'); }
     setIsModalOpen(false);
     setNewItem({ name:'', location: activeTab!=='All'?activeTab:LOCATION_TABS[1].key, quantity:1, purchaseDate:'' });
