@@ -1,0 +1,93 @@
+const SPREADSHEET_ID = "1di2g-g1hnlcoHERitPxw-Z2MpFEUTAU8Y_FxP11M_Zk";
+const SHEET_NAME = "Inventory";
+const HEADERS = ["id","name","location","purchasedate"];
+
+function ensureSheet_() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
+  if (sh.getLastRow() === 0) sh.appendRow(HEADERS);
+  return sh;
+}
+
+function doGet(e) {
+  const sh = ensureSheet_();
+  const params = e?.parameter || {};
+  
+  // simple manual test support
+  if (params.id || params.name || params.location) {
+    sh.appendRow([params.id || "", params.name || "", params.location || ""]);
+    return ContentService.createTextOutput("ok");
+  }
+
+  if (params.action === "get") {
+    const last = sh.getLastRow();
+    const vals = last > 1 ? sh.getRange(2, 1, last - 1, 3).getValues() : [];
+    const items = vals.map(r => ({ id: r[0], name: r[1], location: r[2] }));
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", items }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  return ContentService.createTextOutput("ping");
+}
+
+function doPost(e) {
+  const body = JSON.parse(e.postData.contents || "{}");
+  const sh = ensureSheet_();
+
+  // 🔑 DELETE LOGIC: Handle single item DELETION (action: 'delete')
+  if (body.action === 'delete' && body.id) {
+    const lastRow = sh.getLastRow();
+    
+    // Only proceed if there are actual data rows
+    if (lastRow > 1) {
+      // Get all data columns to ensure we find the row correctly
+      const dataRange = sh.getRange(2, 1, lastRow - 1, HEADERS.length);
+      const data = dataRange.getValues();
+      
+      let rowIndexToDelete = -1; // This will be the 0-based index of the array row
+
+      // Search through the data for the matching ID in the first column (index 0)
+      for (let i = 0; i < data.length; i++) {
+        // Use String() for a safe comparison, matching the React app's string IDs
+        if (String(data[i][0]) === String(body.id)) {
+          rowIndexToDelete = i; 
+          break;
+        }
+      }
+
+      if (rowIndexToDelete !== -1) {
+        // Convert the array index (0-based) to the physical spreadsheet row number (+2 for header + 1-based index)
+        const sheetRowNumber = rowIndexToDelete + 2; 
+        sh.deleteRow(sheetRowNumber);
+        
+        return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Item deleted" }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Item not found" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  // --------------------------------------------------------------------------
+
+  // Existing logic for single item ADDITION (action: 'add')
+  if (body.action === 'add' && body.name) {
+    sh.appendRow([body.id || "", body.name || "", body.location || ""]);
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Item added" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // Existing logic for bulk update/overwrite (action: 'update')
+  if (body.action !== "update" || !Array.isArray(body.items))
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Invalid body" }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 3).clearContent();
+  if (body.items.length) {
+    const rows = body.items.map(i => [i.id || "", i.name || "", i.location || ""]);
+    sh.getRange(2, 1, rows.length, 3).setValues(rows);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ status: "success", inserted: body.items.length }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
