@@ -68,7 +68,7 @@ const App = () => {
     if (!newItem.name.trim() || newItem.quantity <= 0) return;
     const toAdd = {
       id: generateId(), name: newItem.name.trim(),
-      location: newItem.location, purchasedate: newItem.purchaseDate || '',
+      location: newItem.location, purchaseDate: newItem.purchaseDate || '',
       quantity: Number(newItem.quantity || 1),
     };
     setInventory(prev => [...prev, { id: toAdd.id, name: toAdd.name, location: toAdd.location, purchaseDate: toAdd.purchaseDate, quantity: toAdd.quantity }]);
