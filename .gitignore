@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output
+dist/
+build/
+
+# Production artifacts
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor folders/files
+.vscode/
+.idea/
+
+# Cache
+.cache/
+.eslintcache
+*.tscache
+
+# OS clutter
+.DS_Store
+Thumbs.db
+
+# Env files (keep API secrets out of GitHub)
+.env
+.env.*
