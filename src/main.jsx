@@ -18,9 +18,10 @@ const LOCATION_TABS = [
 // API helpers
 const apiList = async () => (await fetch(`${API_URL}?action=list`)).json();
 const apiAdd = async (row) =>
-  (await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add',row})})).json();
+  // REMOVED explicit Content-Type header to bypass CORS preflight check
+  (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'add',row})})).json();
 const apiUpdateQuantity = async (id, delta) =>
-  (await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'updateQuantity',id,delta})})).json();
+  (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'updateQuantity',id,delta})})).json();
 
 const App = () => {
   const [inventory, setInventory] = useState([]);

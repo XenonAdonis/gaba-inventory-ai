@@ -1,0 +1,82 @@
+// Leave blank if this script is bound to the target Google Sheet. [cite: 1]
+// If standalone, paste the ID from the sheet URL between the quotes. [cite: 2]
+const SPREADSHEET_ID = "1di2g-g1hnlcoHERitPxw-Z2MpFEUTAU8Y_FxP11M_Zk";
+const SHEET_NAME = "Inventory"; [cite: 3]
+const HEADERS = ["id","name","location","purchaseDate","quantity"];
+
+function getSheet_() {
+  const ss = SPREADSHEET_ID
+    ?
+    SpreadsheetApp.openById(SPREADSHEET_ID) [cite: 4]
+    : SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error("Spreadsheet not found. Set SPREADSHEET_ID or bind script.");
+  const sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME); [cite: 5]
+  if (sh.getLastRow() === 0) sh.appendRow(HEADERS);
+  return sh;
+} [cite: 6]
+
+// NEW FUNCTION: Handles the OPTIONS (pre-flight) request required for CORS POST
+function doOptions() {
+  return json_({ok: true});
+}
+
+function doGet(e) {
+  const sh = getSheet_();
+  const last = sh.getLastRow();
+  const vals = last > 1 ?
+  sh.getRange(2,1,last-1,HEADERS.length).getValues() : []; [cite: 7]
+  const items = vals.map(r => ({
+    id:r[0], name:r[1], location:r[2], purchaseDate:r[3], quantity:Number(r[4]||0)
+  }));
+  // doGet response is wrapped by the CORS-enabled json_ function below
+  return json_(items);
+}
+
+function doPost(e) {
+  const sh = getSheet_();
+  const body = JSON.parse(e.postData?.contents || "{}");
+  const action = String(body.action||"").toLowerCase(); [cite: 9]
+
+  if (action === "add" && body.row) {
+    const r = body.row;
+    sh.appendRow([r.id||"", r.name||"", r.location||"", r.purchaseDate||"", Number(r.quantity||0)]); [cite: 10]
+    return json_({ok:true});
+  }
+
+  if (action === "updatequantity" && body.id != null && body.delta != null) {
+    const range = sh.getRange(2,1,Math.max(sh.getLastRow()-1,0),HEADERS.length);
+    const data  = range.getValues(); [cite: 11]
+    const idx = data.findIndex(row => String(row[0]) === String(body.id));
+    if (idx > -1) { [cite: 12]
+      const cur = Number(data[idx][4]||0);
+      data[idx][4] = Math.max(0, cur + Number(body.delta));
+      range.setValues(data); [cite: 13]
+      return json_({ok:true, quantity:data[idx][4]});
+    }
+    return json_({ok:false, error:"not_found"});
+  } [cite: 14]
+
+  if (action === "delete" && body.id) {
+    const last = sh.getLastRow(); [cite: 15]
+    if (last > 1) {
+      const data = sh.getRange(2,1,last-1,HEADERS.length).getValues(); [cite: 16]
+      const i = data.findIndex(r => String(r[0]) === String(body.id));
+      if (i > -1) { sh.deleteRow(i+2); return json_({ok:true});
+      } [cite: 17]
+    }
+    return json_({ok:false, error:"not_found"});
+  }
+
+  return json_({ok:false, error:"bad_request"}); [cite: 18]
+}
+
+// MODIFIED HELPER: Includes the necessary CORS headers
+function json_(o){
+  return ContentService.createTextOutput(JSON.stringify(o))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeaders({
+      'Access-Control-Allow-Origin': '*', // Allows access from any origin
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    });
+}
