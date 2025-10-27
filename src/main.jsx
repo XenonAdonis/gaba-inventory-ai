@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbyYjxX97y2XaSNXzaloevChPqHaBwrZsrSOWNsJZLsn9-UEuTwvNDUFiOBG3gNjnQF7jA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyYjxX97y2XaSNZzaloevChPqHaBwrZsrSOWNsJZLsn9-UEuTwvNDUFiOBG3gNjnQF7jA/exec';
 //const API_URL = import.meta.env.VITE_API_URL;
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
@@ -23,7 +23,7 @@ const apiAdd = async (row) =>
 const apiUpdateQuantity = async (id, delta) =>
   (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'updateQuantity',id,delta})})).json();
 
-// NEW: API helper for deleting an item
+// API helper for deleting an item
 const apiDelete = async (id) =>
   (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'delete',id})})).json();
 
@@ -83,11 +83,9 @@ const App = () => {
     setNewItem({ name:'', location: activeTab!=='All'?activeTab:LOCATION_TABS[1].key, quantity:1, purchaseDate:'' });
   };
   
-  // NEW: Handler for deleting an item
+  // Handler for deleting an item - NO CONFIRMATION
   const handleDeleteItem = async (id, name) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-      return;
-    }
+    // Confirmation dialog has been removed. Deletion is immediate.
     
     // Optimistically update local state
     setInventory(prev => prev.filter(it => it.id !== id));
@@ -128,7 +126,7 @@ const App = () => {
             <span className={`text-${locationColor}-300 font-medium`}>{locationMap[item.location]}</span>
             {item.purchaseDate && <span className="text-gray-400">Purchased: {item.purchaseDate}</span>}
           </div>
-          {/* NEW: Delete Button */}
+          {/* Delete Button */}
           <button onClick={()=>handleDeleteItem(item.id, item.name)}
             className="mt-2 text-red-400 hover:text-red-500 text-xs font-medium self-start">
             Remove Item
