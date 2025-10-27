@@ -23,6 +23,10 @@ const apiAdd = async (row) =>
 const apiUpdateQuantity = async (id, delta) =>
   (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'updateQuantity',id,delta})})).json();
 
+// NEW: API helper for deleting an item
+const apiDelete = async (id) =>
+  (await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'delete',id})})).json();
+
 const App = () => {
   const [inventory, setInventory] = useState([]);
   const [activeTab, setActiveTab] = useState(LOCATION_TABS[0].key);
@@ -78,6 +82,23 @@ const App = () => {
     setIsModalOpen(false);
     setNewItem({ name:'', location: activeTab!=='All'?activeTab:LOCATION_TABS[1].key, quantity:1, purchaseDate:'' });
   };
+  
+  // NEW: Handler for deleting an item
+  const handleDeleteItem = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+      return;
+    }
+    
+    // Optimistically update local state
+    setInventory(prev => prev.filter(it => it.id !== id));
+    
+    try {
+      await apiDelete(id);
+      setErr('');
+    } catch {
+      setErr(`Could not delete "${name}" online. Item deleted locally.`);
+    }
+  };
 
   const locationMap = useMemo(()=>LOCATION_TABS.reduce((a,t)=>((a[t.key]=t.name),a),{}),[]);
   const filteredAndSortedInventory = useMemo(()=>{
@@ -100,15 +121,20 @@ const App = () => {
   const InventoryItem = ({ item }) => {
     const locationColor = LOCATION_TABS.find(t=>t.key===item.location)?.color || 'gray';
     return (
-      <div className="flex items-center justify-between bg-gray-700 p-4 mb-3 rounded-xl shadow-md hover:bg-gray-600">
+      <div className="flex items-start justify-between bg-gray-700 p-4 mb-3 rounded-xl shadow-md hover:bg-gray-600">
         <div className="flex flex-col flex-grow min-w-0 pr-4">
           <p className="text-lg font-semibold text-white truncate" title={item.name}>{item.name}</p>
           <div className="text-xs mt-1 space-x-2">
             <span className={`text-${locationColor}-300 font-medium`}>{locationMap[item.location]}</span>
             {item.purchaseDate && <span className="text-gray-400">Purchased: {item.purchaseDate}</span>}
           </div>
+          {/* NEW: Delete Button */}
+          <button onClick={()=>handleDeleteItem(item.id, item.name)}
+            className="mt-2 text-red-400 hover:text-red-500 text-xs font-medium self-start">
+            Remove Item
+          </button>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-shrink-0 pt-1">
           <button onClick={()=>handleUpdateQuantity(item.id,-1)} className="w-8 h-8 text-white bg-red-500 rounded-full hover:bg-red-600">-</button>
           <span className="text-xl font-extrabold text-lime-300 w-8 text-center">{item.quantity}</span>
           <button onClick={()=>handleUpdateQuantity(item.id,1)} className="w-8 h-8 text-white bg-green-500 rounded-full hover:bg-green-600">+</button>
