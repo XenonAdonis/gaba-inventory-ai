@@ -12,7 +12,7 @@ const LOCATION_TABS = [
   { key: 'PantryOut', name: 'Outside Pantry', color: 'lime' },
   { key: 'FreezerIn', name: 'Inside Freezer', color: 'sky' },
   { key: 'FreezerOut', name: 'Outside Freezer', color: 'sky' },
-  { key: 'FridgeOut', name: 'Outside Fridge', color: 'amber' },
+  { key: 'FridgeOut', name: 'Outside Fridge', color: 'sky' },
 ];
 
 // API helpers
